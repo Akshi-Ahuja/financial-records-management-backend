@@ -7,6 +7,9 @@ import com.finance.finance_backend.entity.FinancialRecordEntity;
 import com.finance.finance_backend.entity.UserEntity;
 import com.finance.finance_backend.enums.Category;
 import com.finance.finance_backend.enums.RecordType;
+import com.finance.finance_backend.exception.FinancialRecordNotFoundException;
+import com.finance.finance_backend.exception.InvalidOperationException;
+import com.finance.finance_backend.exception.UserNotFoundException;
 import com.finance.finance_backend.repository.FinancialRecordsRepository;
 import com.finance.finance_backend.repository.UserRepository;
 import com.finance.finance_backend.service.FinancialRecordService;
@@ -27,11 +30,11 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     @Override
     public FinancialRecordResponse createRecord(CreateFinancialRecordRequest request) {
         if (request.getCreatedByUserId() == null) {
-            throw new RuntimeException("CreatedBy user ID is required");
+            throw new InvalidOperationException("CreatedBy user ID is required");
         }
 
         UserEntity found = userRepository.findById(request.getCreatedByUserId())
-                .orElseThrow(() -> new RuntimeException("User Not Found!"));
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!"));
 
         validateTypeCategory(request.getType(), request.getCategory());
 
@@ -88,7 +91,7 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     @Override
     public FinancialRecordResponse getRecordById(Long recordId) {
         FinancialRecordEntity found = recordsRepository.findById(recordId)
-                .orElseThrow(() -> new RuntimeException("Financial record not found!"));
+                .orElseThrow(() -> new FinancialRecordNotFoundException("Financial record not found!"));
 
         return toRecordResponse(found);
     }
@@ -97,7 +100,7 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     public FinancialRecordResponse updateRecord(Long recordId, UpdateFinancialRecordRequest request) {
 
         FinancialRecordEntity found = recordsRepository.findById(recordId)
-                .orElseThrow(() -> new RuntimeException("Financial record not found!"));
+                .orElseThrow(() -> new FinancialRecordNotFoundException("Financial record not found!"));
 
         RecordType finalType = request.getType() != null ? request.getType() : found.getType();
         Category finalCategory = request.getCategory() != null ? request.getCategory() : found.getCategory();
@@ -132,7 +135,7 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     @Override
     public void deleteRecord(Long recordId) {
         FinancialRecordEntity found = recordsRepository.findById(recordId)
-                .orElseThrow(() -> new RuntimeException("Financial record not found!"));
+                .orElseThrow(() -> new FinancialRecordNotFoundException("Financial record not found!"));
 
         recordsRepository.delete(found);
     }
@@ -153,7 +156,7 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
                     category == Category.TRAINING ||
                     category == Category.MISCELLANEOUS) {
 
-                throw new RuntimeException("Invalid category for Income");
+                throw new InvalidOperationException("Invalid category for Income");
             }
         }
 
@@ -166,7 +169,7 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
                     category == Category.REFUND_INCOME ||
                     category == Category.INTEREST_INCOME) {
 
-                throw new RuntimeException("Invalid category for Expense");
+                throw new InvalidOperationException("Invalid category for Expense");
             }
         }
     }

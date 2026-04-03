@@ -8,6 +8,9 @@ import com.finance.finance_backend.dto.responses.UserResponse;
 import com.finance.finance_backend.entity.UserEntity;
 import com.finance.finance_backend.enums.Role;
 import com.finance.finance_backend.enums.UserStatus;
+import com.finance.finance_backend.exception.DuplicateEmailException;
+import com.finance.finance_backend.exception.InvalidEmailDomainException;
+import com.finance.finance_backend.exception.UserNotFoundException;
 import com.finance.finance_backend.repository.UserRepository;
 import com.finance.finance_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +27,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse createUser(CreateUserRequest request) {
         if(userRepository.existsByEmail(request.getEmail())){
-            throw new RuntimeException("Email already exists!");
+            throw new DuplicateEmailException("Email already exists!");
         }
         if(!request.getEmail().toLowerCase().endsWith("@zorvyn.in")) {
-            throw new RuntimeException("Emails should end with '@zorvyn.in'!");
+            throw new InvalidEmailDomainException("Emails should end with '@zorvyn.in'!");
         }
         UserEntity newUser = UserEntity.builder()
                 .name(request.getName())
@@ -52,7 +55,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserById(Long userId) {
         UserEntity found = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Not Found!"));
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!"));
 
         return toUserResponse(found);
     }
@@ -60,7 +63,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUser(Long userId, UpdateUserRequest request) {
         UserEntity found = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Not Found!"));
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!"));
 
         if (request.getName() != null && !request.getName().isBlank()){
             found.setName(request.getName());
@@ -69,7 +72,7 @@ public class UserServiceImpl implements UserService {
         if(request.getEmail() != null && !request.getEmail().isBlank()){
             if (!found.getEmail().equals(request.getEmail()) &&
                     userRepository.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("Email already exists");
+                throw new DuplicateEmailException("Email already exists");
             }
             found.setEmail(request.getEmail());
         }
@@ -82,7 +85,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateRole(Long userId, UpdateUserRoleRequest request) {
         UserEntity found = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Not Found!"));
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!"));
         found.setRole(request.getRole());
         UserEntity updated = userRepository.save(found);
         return toUserResponse(updated);
@@ -91,7 +94,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateStatus(Long userId, UpdateUserStatusRequest request) {
         UserEntity found = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Not Found!"));
+                .orElseThrow(() -> new UserNotFoundException("User Not Found!"));
         found.setStatus(request.getStatus());
         UserEntity updated = userRepository.save(found);
         return toUserResponse(updated);
