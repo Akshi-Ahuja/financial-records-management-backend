@@ -3,6 +3,7 @@ package com.finance.finance_backend.service.impl;
 import com.finance.finance_backend.dto.requests.CreateFinancialRecordRequest;
 import com.finance.finance_backend.dto.requests.UpdateFinancialRecordRequest;
 import com.finance.finance_backend.dto.responses.FinancialRecordResponse;
+import com.finance.finance_backend.dto.responses.PagedResponse;
 import com.finance.finance_backend.entity.FinancialRecordEntity;
 import com.finance.finance_backend.entity.UserEntity;
 import com.finance.finance_backend.enums.Category;
@@ -14,6 +15,10 @@ import com.finance.finance_backend.repository.FinancialRecordsRepository;
 import com.finance.finance_backend.repository.UserRepository;
 import com.finance.finance_backend.service.FinancialRecordService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,11 +55,15 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     }
 
     @Override
-    public List<FinancialRecordResponse> getAllRecords(
+    public PagedResponse<FinancialRecordResponse> getAllRecords(
             RecordType type,
             Category category,
             LocalDate startDate,
-            LocalDate endDate) {
+            LocalDate endDate,
+            String search,
+            int page,
+            int size
+    ) {
 
         if (type != null && category != null) {
             validateTypeCategory(type, category);
@@ -78,11 +87,31 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
                     criteriaBuilder.between(root.get("transactionDate"), startDate, endDate));
         }
 
-        List<FinancialRecordEntity> records = recordsRepository.findAll(spec);
+        if (search != null && !search.isBlank()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get("description")),
+                            "%" + search.toLowerCase() + "%"
+                    ));
+        }
 
-        return records.stream()
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<FinancialRecordEntity> recordsPage = recordsRepository.findAll(spec, pageable);
+
+        List<FinancialRecordResponse> content = recordsPage.getContent()
+                .stream()
                 .map(this::toRecordResponse)
                 .toList();
+
+        return PagedResponse.<FinancialRecordResponse>builder()
+                .content(content)
+                .pageNumber(recordsPage.getNumber())
+                .pageSize(recordsPage.getSize())
+                .totalElements(recordsPage.getTotalElements())
+                .totalPages(recordsPage.getTotalPages())
+                .last(recordsPage.isLast())
+                .build();
 
     }
 

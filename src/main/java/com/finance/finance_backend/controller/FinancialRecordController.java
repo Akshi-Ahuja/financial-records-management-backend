@@ -3,6 +3,7 @@ package com.finance.finance_backend.controller;
 import com.finance.finance_backend.dto.requests.CreateFinancialRecordRequest;
 import com.finance.finance_backend.dto.requests.UpdateFinancialRecordRequest;
 import com.finance.finance_backend.dto.responses.FinancialRecordResponse;
+import com.finance.finance_backend.dto.responses.PagedResponse;
 import com.finance.finance_backend.enums.Category;
 import com.finance.finance_backend.enums.RecordType;
 import com.finance.finance_backend.service.FinancialRecordService;
@@ -30,13 +31,16 @@ public class FinancialRecordController {
     }
 
     @GetMapping
-    public ResponseEntity<List<FinancialRecordResponse>> getAllRecords(
+    public ResponseEntity<PagedResponse<FinancialRecordResponse>> getAllRecords(
             @RequestParam(required = false) RecordType type,
             @RequestParam(required = false) Category category,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
             ) {
-        return ResponseEntity.ok(financialRecordService.getAllRecords(type, category, startDate, endDate));
+        return ResponseEntity.ok(financialRecordService.getAllRecords(type, category, startDate, endDate,search, page, size));
     }
 
     @GetMapping("/{recordId}")

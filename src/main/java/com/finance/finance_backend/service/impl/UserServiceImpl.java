@@ -14,6 +14,7 @@ import com.finance.finance_backend.exception.UserNotFoundException;
 import com.finance.finance_backend.repository.UserRepository;
 import com.finance.finance_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserResponse createUser(CreateUserRequest request) {
@@ -35,7 +37,7 @@ public class UserServiceImpl implements UserService {
         UserEntity newUser = UserEntity.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole() != null ? request.getRole() : Role.VIEWER)
                 .status(UserStatus.ACTIVE)
                 .build();
