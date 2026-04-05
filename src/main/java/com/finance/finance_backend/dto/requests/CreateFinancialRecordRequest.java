@@ -27,7 +27,4 @@ public class CreateFinancialRecordRequest {
 
     @Size(max = 500, message = "Description can be maximum 500 characters")
     private String description;
-
-    @NotNull(message = "Created by user ID is required")
-    private Long createdByUserId;
 }

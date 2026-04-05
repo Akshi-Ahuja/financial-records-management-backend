@@ -15,6 +15,8 @@ import com.finance.finance_backend.repository.UserRepository;
 import com.finance.finance_backend.service.FinancialRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -29,14 +31,10 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
 
     @Override
     public FinancialRecordResponse createRecord(CreateFinancialRecordRequest request) {
-        if (request.getCreatedByUserId() == null) {
-            throw new InvalidOperationException("CreatedBy user ID is required");
-        }
-
-        UserEntity found = userRepository.findById(request.getCreatedByUserId())
-                .orElseThrow(() -> new UserNotFoundException("User Not Found!"));
 
         validateTypeCategory(request.getType(), request.getCategory());
+
+        UserEntity createdBy = getLoggedInUser();
 
         FinancialRecordEntity newRecord = FinancialRecordEntity.builder()
                 .amount(request.getAmount())
@@ -44,7 +42,7 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
                 .category(request.getCategory())
                 .transactionDate(request.getTransactionDate())
                 .description(request.getDescription())
-                .createdBy(found)
+                .createdBy(createdBy)
                 .build();
 
         FinancialRecordEntity saved = recordsRepository.save(newRecord);
@@ -188,5 +186,13 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
                 .createdAt(record.getCreatedAt())
                 .updatedAt(record.getUpdatedAt())
                 .build();
+    }
+
+    private UserEntity getLoggedInUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Logged in user not found"));
     }
 }
