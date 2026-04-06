@@ -249,7 +249,7 @@ Client → Any protected route (with Bearer token)
 | Component | Role |
 |---|---|
 | `JwtService` | Token generation and validation |
-| `JwtAuthenticationFilter` | Intercepts requests, validates tokens |
+| `JwtAuthFilter` | Intercepts requests, validates tokens |
 | `CustomUserDetailsService` | Loads user by email for Spring Security |
 | `CustomAuthenticationEntryPoint` | Returns 401 for unauthenticated requests |
 | `CustomAccessDeniedHandler` | Returns 403 for unauthorized role access |
