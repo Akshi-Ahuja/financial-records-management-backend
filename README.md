@@ -421,14 +421,12 @@ All errors return consistent, structured JSON responses:
 
 This backend demonstrates:
 
-- ✅ Clean layered architecture with proper separation of concerns
-- ✅ Secure authentication with JWT + BCrypt
-- ✅ Role-based access control at the method level
-- ✅ Full CRUD with dynamic filtering, pagination, sorting, and search
-- ✅ Aggregated analytics for a finance dashboard
-- ✅ Consistent validation and structured error handling
-- ✅ Thoughtful design decisions documented and justified
+- Clean layered architecture with proper separation of concerns
+- Secure authentication with JWT + BCrypt
+- Role-based access control at the method level
+- Full CRUD with dynamic filtering, pagination, sorting, and search
+- Aggregated analytics for a finance dashboard
+- Consistent validation and structured error handling
+- Thoughtful design decisions documented and justified
 
----
 
-*Built as part of the Backend Developer Intern screening assignment for Zorvyn Fintech.*
